@@ -1,29 +1,42 @@
 package com.android.search.adapter
 
+import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.android.search.data.Constants
 import com.android.search.data.KakaoImage
+import com.android.search.data.Utils.setTime
 import com.android.search.databinding.ListItemBinding
 import com.bumptech.glide.Glide
 
-class MyBoxAdapter (var myItemList : ArrayList<KakaoImage>) : RecyclerView.Adapter<MyBoxAdapter.ViewHolder>(){
+class MyBoxAdapter (var mContext : Context) : RecyclerView.Adapter<MyBoxAdapter.ViewHolder>() {
 
-    inner class ViewHolder(binding : ListItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    var items = mutableListOf<KakaoImage>()
+
+
+//    interface ItemClickListener {
+//        fun onClick(item: KakaoImage,position: Int)
+//    }
+//
+    interface ItemClickListener {
+        fun onClick(item : KakaoImage, position: Int)
+    }
+    var clickListener : ItemClickListener? = null
+//
+//    fun setonItemClickListener (listener : ItemClickListener) {
+//        this.clickListener = listener
+//    }
+
+    inner class ViewHolder(binding: ListItemBinding) : RecyclerView.ViewHolder(binding.root) {
         val img = binding.ivItem
         val site = binding.tvImgSite
         val date = binding.tvDate
+        val like = binding.ivFavorite
     }
-
-    interface ItemClick {
-        fun onClick(view: View, position: Int)
-    }
-
-    var itmeClick : ItemClick? = null
 
     override fun getItemCount(): Int {
-        return myItemList.size
+        return items.size
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -33,15 +46,15 @@ class MyBoxAdapter (var myItemList : ArrayList<KakaoImage>) : RecyclerView.Adapt
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.itemView.setOnClickListener {
-            itmeClick?.onClick(it,position)
+            clickListener?.onClick(items[position],position)
         }
 
-        Glide.with(holder.itemView.context)
-            .load(myItemList[position].url)
+        Glide.with(mContext)
+            .load(items[position].url)
             .into(holder.img)
-        holder.site.text = myItemList[position].site
-        holder.date.text = myItemList[position].time
-            .substring(0,19)
-            .replace("T"," ")
+        holder.date.text = items[position].time.setTime()
+
+        val type = if (items[position].type == Constants.SEARCH_TYPE_IMAGE) "[Video]" else "[Image]"
+        holder.site.text = type + items[position].site
     }
 }

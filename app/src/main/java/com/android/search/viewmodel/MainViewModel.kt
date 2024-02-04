@@ -1,25 +1,25 @@
 package com.android.search.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.search.data.Constants
-import com.android.search.data.Image
 import com.android.search.data.KakaoImage
-import com.android.search.data.Video
 import com.android.search.retrofit.NetWorkClient
 import com.android.search.retrofit.NetWorkInterface
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class SearchViewModel(private val retrofit: NetWorkInterface) : ViewModel() {
+class MainViewModel(private val retrofit: NetWorkInterface) : ViewModel() {
     //저장할 라이브 데이터
     private var _searchResults = MutableLiveData<List<KakaoImage>>()
     val searchResult: LiveData<List<KakaoImage>>
         get() = _searchResults
+    var _myItmes : MutableLiveData<MutableList<KakaoImage>> = MutableLiveData(mutableListOf<KakaoImage>())
+    val myItmes : LiveData<MutableList<KakaoImage>>
+        get() = _myItmes
 
     fun getDataWithKeyword(keyword: String) {
         doSearch(keyword)
@@ -32,8 +32,8 @@ class SearchViewModel(private val retrofit: NetWorkInterface) : ViewModel() {
         viewModelScope.launch {
             searchItems.clear()
             val responseImage =
-                imgNetwork.image_search(Constants.HEADER, searchKeyword, "recency", 2)
-            val responseVideo = imgNetwork.video_search(Constants.HEADER, searchKeyword, "recency", 2)
+                imgNetwork.image_search(Constants.HEADER, searchKeyword, "recency", 80)
+            val responseVideo = imgNetwork.video_search(Constants.HEADER, searchKeyword, "recency", 15)
 
             responseImage.documents.forEach{
                 val kakaoImg = KakaoImage(Constants.SEARCH_TYPE_IMAGE,it.displaySitename,it.datetime,it.thumbnailUrl)
@@ -50,7 +50,33 @@ class SearchViewModel(private val retrofit: NetWorkInterface) : ViewModel() {
 
         }
     }
+
+    fun likeItemView() {
+        myItmes.value
+    }
+
+    fun likeItemToggle(item: KakaoImage) {
+        if (_myItmes.value?.contains(item) == true) {
+            _myItmes.value?.remove(item)
+        }else {
+            _myItmes.value?.add(item)
+        }
+        Log.d("MainViewModel","#aaa like = ${myItmes.value}")
+    }
+
+//    fun likeItemToggle(item : KakaoImage) {
+//        _myItmes.value?.let {
+//
+//        }
+//    }
+
+//    fun viewLikeItems(item: List<KakaoImage>) {
+//        item.map { it.url ==  }
+//
+//
+//    }
 }
+
 
 
 

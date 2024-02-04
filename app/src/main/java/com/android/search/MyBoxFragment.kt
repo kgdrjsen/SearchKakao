@@ -9,22 +9,27 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.activityViewModels
 import com.android.search.adapter.MyBoxAdapter
 import com.android.search.data.KakaoImage
 import com.android.search.databinding.FragmentMyBoxBinding
+import com.android.search.retrofit.NetWorkClient
+import com.android.search.viewmodel.MainViewModel
+import com.android.search.viewmodel.ViewModelFactory
 
 class MyBoxFragment : Fragment() {
     private var _binding: FragmentMyBoxBinding? = null
     private val binding get() = _binding!!
     private lateinit var mContext: Context
-    private lateinit var myItemList: ArrayList<KakaoImage>
-    private lateinit var mAdapter : MyBoxAdapter
+    private lateinit var mAdapter: MyBoxAdapter
+    private val retrofit = NetWorkClient.imgNetWork
+    val mainViewModel by activityViewModels<MainViewModel>() {
+        ViewModelFactory(retrofit)
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         mContext = context
-        myItemList = (mContext as MainActivity).myItemList
-        mAdapter = MyBoxAdapter(myItemList)
     }
 
     override fun onCreateView(
@@ -38,58 +43,58 @@ class MyBoxFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        emptyView()
-
+        mAdapter = MyBoxAdapter(mContext)
         binding.myitemsRecyclerview.adapter = mAdapter
         val layoutManaged = GridWrapper(requireContext(),2)
         binding.myitemsRecyclerview.layoutManager = layoutManaged
 
-        clickRemoveItem()
+        mainViewModel.likeItemView()
+
+        mAdapter.clickListener = clickItem()
+
+        observeViewModel()
+        clickItem()
+//        emptyView()
     }
 
-    override fun onResume() {
-        super.onResume()
-        mAdapter.myItemList = (mContext as MainActivity).myItemList
-        //noinspection NotifyDataSetChanged
-        mAdapter.notifyDataSetChanged()
-
-        emptyView()
-    }
-
-    private fun clickRemoveItem() {
-        object : MyBoxAdapter.ItemClick {
-            override fun onClick(view: View, position: Int) {
-                val del = AlertDialog.Builder(activity as Context)
-                del.setIcon(R.mipmap.ic_launcher)
-                del.setTitle("리스트에서 삭제")
-                del.setMessage("리스트에서 정말 삭제 하시겠습니까?")
-
-                Log.d("MyItemsFragment","#aaa onClick")
-                //확인을 누르면 지워지게
-                del.setPositiveButton("확인",
-                    DialogInterface.OnClickListener { dialog, which ->
-                        var unLikeCheck = (mContext as MainActivity).unLike(myItemList[position])
-                        mAdapter.myItemList = (mContext as MainActivity).myItemList
-//                        myItemList[position].isLike = false
-                        Log.d("MyItemsFragment","#aaa unLikeCheck = $unLikeCheck")
-                        //noinspection NotifyDataSetChanged
-                        mAdapter.notifyDataSetChanged()
-                    })
-                del.setNegativeButton("취소",
-                    DialogInterface.OnClickListener { dialog, which ->
-                        dialog.dismiss()
-                    })
-                del.show()
-            }
-        }.also { mAdapter.itmeClick = it }
-    }
-
-    private fun emptyView() {
-        if (myItemList.size == 0) {
-            binding.tvEmpty.visibility = View.VISIBLE
-        }else {
-            binding.tvEmpty.visibility = View.INVISIBLE
+    private fun observeViewModel() {
+        mainViewModel.searchResult.observe(viewLifecycleOwner) {
+            mAdapter.items = it.toMutableList()
+            //noinspection NotifyDataSetChanged
+            mAdapter.notifyDataSetChanged()
         }
     }
+
+    private fun clickItem() = object : MyBoxAdapter.ItemClickListener  {
+        override fun onClick(item: KakaoImage, position: Int) {
+            val del = AlertDialog.Builder(activity as Context)
+            del.setIcon(R.mipmap.ic_launcher)
+            del.setTitle("리스트에서 삭제")
+            del.setMessage("리스트에서 정말 삭제 하시겠습니까?")
+
+            Log.d("MyItemsFragment","#aaa onClick")
+            //확인을 누르면 지워지게
+            del.setPositiveButton("확인",
+                DialogInterface.OnClickListener { dialog, which ->
+                    val item = mAdapter.items[position]
+                    item.isLike = false
+                    mainViewModel.likeItemToggle(item)
+                    Log.d("SearchFragment","#aaa isLike = ${item.isLike}")
+                    mAdapter.notifyItemChanged(position)
+                })
+            del.setNegativeButton("취소",
+                DialogInterface.OnClickListener { dialog, which ->
+                    dialog.dismiss()
+                })
+            del.show()
+        }
+    }
+
+//    private fun emptyView() {
+//        if (mAdapter.items.size == 0 ) {
+//            binding.tvEmpty.visibility = View.VISIBLE
+//        }else {
+//            binding.tvEmpty.visibility = View.INVISIBLE
+//        }
+//    }
 }

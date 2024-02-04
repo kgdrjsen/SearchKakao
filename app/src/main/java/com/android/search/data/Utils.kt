@@ -6,6 +6,8 @@ import android.util.Log
 import com.google.gson.GsonBuilder
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
 object Utils {
@@ -55,5 +57,11 @@ object Utils {
             bookmarkItems.add(item)
         }
         return bookmarkItems
+    }
+
+    fun String.setTime() : String {
+        val receiveTime = OffsetDateTime.parse(this)
+        val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        return dateFormat.format(receiveTime)
     }
 }

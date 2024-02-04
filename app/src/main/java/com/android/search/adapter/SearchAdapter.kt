@@ -5,17 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
-import com.android.search.MainActivity
 import com.android.search.data.Constants
 import com.android.search.data.KakaoImage
+import com.android.search.data.Utils.setTime
 import com.android.search.databinding.ListItemBinding
-import com.android.search.retrofit.NetWorkClient
-import com.android.search.viewmodel.SearchViewModel
 import com.bumptech.glide.Glide
-import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
 
 class SearchAdapter (val context: Context) : RecyclerView.Adapter<SearchAdapter.ItemViewHolder>() {
 
@@ -52,20 +47,10 @@ class SearchAdapter (val context: Context) : RecyclerView.Adapter<SearchAdapter.
         holder.like.visibility = if (items[position].isLike) View.VISIBLE else View.INVISIBLE
     }
 
-    private fun String.setTime() : String {
-        val receiveTime = OffsetDateTime.parse(this)
-        val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        return dateFormat.format(receiveTime)
-    }
-
     override fun getItemCount(): Int {
         return items.size
     }
-
-    override fun getItemId(position: Int): Long {
-        return position.toLong()
-    }
-
+    
     inner class ItemViewHolder (binding: ListItemBinding) : RecyclerView.ViewHolder(binding.root) {
         val img = binding.ivItem
         val site = binding.tvImgSite
