@@ -12,6 +12,8 @@ import com.android.search.data.Utils.setTime
 import com.android.search.databinding.ListItemBinding
 import com.bumptech.glide.Glide
 
+const val Tag = "SearchAdapter"
+
 class SearchAdapter (val context: Context) : RecyclerView.Adapter<SearchAdapter.ItemViewHolder>() {
 
     var items = mutableListOf<KakaoImage>()
@@ -23,14 +25,13 @@ class SearchAdapter (val context: Context) : RecyclerView.Adapter<SearchAdapter.
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         val binding = ListItemBinding.inflate(LayoutInflater.from(parent.context),parent,false)
-        Log.d("SearchAdapter", "#aaa onCreateViewHolder")
         return ItemViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         holder.itemView.setOnClickListener {
             itemClick?.onClick(it,position)
-            Log.d("SearchAdapter","#aaa click? = $position")
+            Log.d(Tag,"#aaa click? = $position")
         }
         viewBind(holder, position)
     }

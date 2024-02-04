@@ -1,6 +1,5 @@
 package com.android.search.viewmodel
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -14,7 +13,8 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(private val retrofit: NetWorkInterface) : ViewModel() {
     //저장할 라이브 데이터
-    private var _searchResults = MutableLiveData<List<KakaoImage>>()
+//    private var _searchResults = MutableLiveData<List<KakaoImage>>()
+    var _searchResults : MutableLiveData<List<KakaoImage>> = MutableLiveData(mutableListOf<KakaoImage>())
     val searchResult: LiveData<List<KakaoImage>>
         get() = _searchResults
     var _myItmes : MutableLiveData<MutableList<KakaoImage>> = MutableLiveData(mutableListOf<KakaoImage>())
@@ -45,8 +45,8 @@ class MainViewModel(private val retrofit: NetWorkInterface) : ViewModel() {
                 searchItems.add(kakaoVideo)
             }
             _searchResults.value = searchItems
-            Log.d("SearchViewModel", "#aaa searchitems = ${searchItems.size}")
-            Log.d("SearchViewModel", "#aaa searchresult = ${_searchResults.value?.size}")
+            Log.d("MainViewModel", "#aaa searchitems = ${searchItems.size}")
+            Log.d("MainViewModel", "#aaa searchresult = ${_searchResults.value?.size}")
 
         }
     }
@@ -55,7 +55,7 @@ class MainViewModel(private val retrofit: NetWorkInterface) : ViewModel() {
         myItmes.value
     }
 
-    fun likeItemToggle(item: KakaoImage) {
+    fun likeItem(item: KakaoImage) {
         if (_myItmes.value?.contains(item) == true) {
             _myItmes.value?.remove(item)
         }else {
@@ -63,6 +63,10 @@ class MainViewModel(private val retrofit: NetWorkInterface) : ViewModel() {
         }
         Log.d("MainViewModel","#aaa like = ${myItmes.value}")
     }
+
+//    fun unLikeItem(item : KakaoImage) {
+//        _myItmes.value?.
+//    }
 
 //    fun likeItemToggle(item : KakaoImage) {
 //        _myItmes.value?.let {

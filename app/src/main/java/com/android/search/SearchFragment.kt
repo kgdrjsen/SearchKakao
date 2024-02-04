@@ -16,6 +16,8 @@ import com.android.search.retrofit.NetWorkClient
 import com.android.search.viewmodel.MainViewModel
 import com.android.search.viewmodel.ViewModelFactory
 
+const val Tag = "SearchFragment"
+
 class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
@@ -50,8 +52,8 @@ class SearchFragment : Fragment() {
         binding.searchView.setQuery(query,false)
 
         viewInit()
+//        observeViewModel()
         setOnQueryTextListenter()
-        observeViewModel()
         clickItem()
     }
 
@@ -68,25 +70,32 @@ class SearchFragment : Fragment() {
         mAdapter = SearchAdapter(mContext)
 
         binding.recyclerview.adapter = mAdapter
+        mainViewModel._searchResults.observe(viewLifecycleOwner) {
+            mAdapter.items = it.toMutableList()
+            Log.d(Tag,"#aaa searchResult = ${mAdapter.items}")
+            //noinspection NotifyDataSetChanged
+            mAdapter.notifyDataSetChanged()
+        }
+
         binding.recyclerview.itemAnimator = null
 
         mAdapter.itemClick = clickItem()
     }
 
-    private fun observeViewModel() {
-        mainViewModel.searchResult.observe(viewLifecycleOwner) {
-            mAdapter.items = it.toMutableList()
-            //noinspection NotifyDataSetChanged
-            mAdapter.notifyDataSetChanged()
-        }
-    }
+//    private fun observeViewModel() {
+//        mainViewModel.searchResult.observe(viewLifecycleOwner) {
+//            mAdapter.items = it.toMutableList()
+//            //noinspection NotifyDataSetChanged
+//            mAdapter.notifyDataSetChanged()
+//        }
+//    }
 
     private fun setOnQueryTextListenter() {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener,
             androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 mainViewModel.getDataWithKeyword(query ?: "")
-                Log.d("SearchFragment", "#aaa search = $query")
+                Log.d(Tag, "#aaa search = $query")
                 saveData(mContext,query ?: "")
                 return false
             }
@@ -101,8 +110,9 @@ class SearchFragment : Fragment() {
         override fun onClick(view: View, position: Int) {
             val item = mAdapter.items[position]
             item.isLike = !item.isLike
-            mainViewModel.likeItemToggle(item)
-            Log.d("SearchFragment","#aaa isLike = ${item.isLike}")
+            mainViewModel.likeItem(item)
+            Log.d(Tag,"#aaa isLike = ${item.isLike}")
+            Log.d(Tag,"#aaa likeItem = ${mainViewModel.myItmes.value}")
             mAdapter.notifyItemChanged(position)
         }
     }
