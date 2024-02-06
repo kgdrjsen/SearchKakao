@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import com.android.search.adapter.MyBoxAdapter
 import com.android.search.data.KakaoImage
 import com.android.search.databinding.FragmentMyBoxBinding
@@ -25,9 +26,10 @@ class MyBoxFragment : Fragment() {
     private lateinit var mContext: Context
     private lateinit var mAdapter: MyBoxAdapter
     private val retrofit = NetWorkClient.imgNetWork
-    val mainViewModel by activityViewModels<MainViewModel>() {
-        ViewModelFactory(retrofit)
-    }
+//    val mainViewModel by activityViewModels<MainViewModel>() {
+//        ViewModelFactory(retrofit)
+//    }
+    private val mainViewModel by lazy { ViewModelProvider(requireActivity(),ViewModelFactory(retrofit)).get(MainViewModel::class.java) }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -47,12 +49,7 @@ class MyBoxFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         mAdapter = MyBoxAdapter(mContext)
         binding.myitemsRecyclerview.adapter = mAdapter
-        mainViewModel._myItmes.observe(viewLifecycleOwner) {
-            mAdapter.items = it.toMutableList()
-            //noinspection NotifyDataSetChanged
-            mAdapter.notifyDataSetChanged()
-            Log.d(TagMB,"#aaa _myItems.value = ${mAdapter.items}")
-        }
+
         val layoutManaged = GridWrapper(requireContext(),2)
         binding.myitemsRecyclerview.layoutManager = layoutManaged
 
@@ -60,11 +57,40 @@ class MyBoxFragment : Fragment() {
         mAdapter.clickListener = clickItem()
         clickItem()
 //        emptyView()
+
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        Log.d(TagMB,"#aaa onDestroyView")
         _binding = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TagMB,"#aaa onDestroy")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mainViewModel.myItmes.observe(viewLifecycleOwner) {
+            Log.d(TagMB,"###aaa 들어옴")
+            mAdapter.items = it.toMutableList()
+            //noinspection NotifyDataSetChanged
+            mAdapter.notifyDataSetChanged()
+//            Log.d(TagMB,"#aaa _myItems.value = ${mAdapter.items}")
+        }
+        Log.d(TagMB,"#aaa onResume")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TagMB,"#aaa onStart")
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TagMB,"#aaa onCreate")
     }
 
 //    private fun observeViewModel() {
@@ -82,7 +108,6 @@ class MyBoxFragment : Fragment() {
             del.setTitle("리스트에서 삭제")
             del.setMessage("리스트에서 정말 삭제 하시겠습니까?")
 
-            Log.d("MyBoxFragment","#aaa onClick")
             //확인을 누르면 지워지게
             del.setPositiveButton("확인",
                 DialogInterface.OnClickListener { dialog, which ->
@@ -91,13 +116,10 @@ class MyBoxFragment : Fragment() {
                         if (it.url == item.url){
                             it.isLike = false
                         }
-                        Log.d(TagMB,"#aaa searchResult like = ${it.isLike})")
                     }
                     item.isLike = false
                     mAdapter.items.remove(item)
                     mainViewModel.myItmes.value?.remove(item)
-                    Log.d(TagMB,"#aaa isLike = ${item.isLike}")
-                    Log.d(TagMB,"#aaa likeItem = ${mainViewModel.myItmes.value}")
                     mAdapter.notifyDataSetChanged()
                 })
             del.setNegativeButton("취소",

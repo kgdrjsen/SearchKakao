@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import com.android.search.adapter.SearchAdapter
 import com.android.search.databinding.FragmentSearchBinding
 import com.android.search.retrofit.NetWorkClient
@@ -24,9 +25,10 @@ class SearchFragment : Fragment() {
     private lateinit var mContext: Context
     private lateinit var mAdapter: SearchAdapter
     private val retrofit = NetWorkClient.imgNetWork
-    val mainViewModel by activityViewModels<MainViewModel>() {
-        ViewModelFactory(retrofit)
-    }
+//    val mainViewModel by activityViewModels<MainViewModel>() {
+//        ViewModelFactory(retrofit)
+//    }
+    private val mainViewModel by lazy { ViewModelProvider(requireActivity(),ViewModelFactory(retrofit)).get(MainViewModel::class.java) }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -52,9 +54,14 @@ class SearchFragment : Fragment() {
         binding.searchView.setQuery(query,false)
 
         viewInit()
-//        observeViewModel()
+
         setOnQueryTextListenter()
         clickItem()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        observeViewModel()
     }
 
     override fun onDestroyView() {
@@ -69,26 +76,26 @@ class SearchFragment : Fragment() {
 
         mAdapter = SearchAdapter(mContext)
 
-        binding.recyclerview.adapter = mAdapter
-        mainViewModel._searchResults.observe(viewLifecycleOwner) {
-            mAdapter.items = it.toMutableList()
-            Log.d(Tag,"#aaa searchResult = ${mAdapter.items}")
-            //noinspection NotifyDataSetChanged
-            mAdapter.notifyDataSetChanged()
-        }
+//        binding.recyclerview.adapter = mAdapter
+//        mainViewModel._searchResults.observe(viewLifecycleOwner) {
+//            Log.d(Tag,"#aaa 들어옴")
+//            mAdapter.items = it.toMutableList()
+//            //noinspection NotifyDataSetChanged
+//            mAdapter.notifyDataSetChanged()
+//        }
 
         binding.recyclerview.itemAnimator = null
 
         mAdapter.itemClick = clickItem()
     }
 
-//    private fun observeViewModel() {
-//        mainViewModel.searchResult.observe(viewLifecycleOwner) {
-//            mAdapter.items = it.toMutableList()
-//            //noinspection NotifyDataSetChanged
-//            mAdapter.notifyDataSetChanged()
-//        }
-//    }
+    private fun observeViewModel() {
+        mainViewModel.searchResult.observe(viewLifecycleOwner) {
+            mAdapter.items = it.toMutableList()
+            //noinspection NotifyDataSetChanged
+            mAdapter.notifyDataSetChanged()
+        }
+    }
 
     private fun setOnQueryTextListenter() {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener,
@@ -111,8 +118,6 @@ class SearchFragment : Fragment() {
             val item = mAdapter.items[position]
             item.isLike = !item.isLike
             mainViewModel.likeItem(item)
-            Log.d(Tag,"#aaa isLike = ${item.isLike}")
-            Log.d(Tag,"#aaa likeItem = ${mainViewModel.myItmes.value}")
             mAdapter.notifyItemChanged(position)
         }
     }
